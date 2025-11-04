@@ -1,4 +1,4 @@
-Here is the requested content, combining the humanized paragraph and the numbered list, formatted in Markdown.
+
 
 This Spring Boot application efficiently manages a medical system by separating its front-end presentation and back-end data needs. The user-facing Admin and Doctor dashboards are built using the classic MVC architecture and rendered with Thymeleaf templates, offering a traditional web experience. Meanwhile, data for all other system modules is exposed via modern REST APIs, making it easily accessible to other services or mobile apps. All requests flow through a central, unified service layer, which acts as the application's brain. This layer intelligently directs data operations to the appropriate database: core structured information like patients, doctors, appointments, and admin details lives in MySQL (managed by JPA entities), while flexible, unstructured prescription data is stored in MongoDB (using document models). This dual-database setup, orchestrated through a common service layer, ensures the application is both robust and specialized.
 
