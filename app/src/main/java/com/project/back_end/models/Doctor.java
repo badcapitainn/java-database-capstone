@@ -47,8 +47,8 @@ public class Doctor {
     private String password;
 
     @NotNull
-    @Pattern(regexp = "\\d{10}", message = "Phone number must be 10 digits")
-    @Column(nullable = false, length = 10)
+    @Pattern(regexp = "\\d{3}-\\d{3}-\\d{4}", message = "Phone number must be in format XXX-XXX-XXXX")
+    @Column(nullable = false, length = 12)
     private String phone;
 
     @ElementCollection
