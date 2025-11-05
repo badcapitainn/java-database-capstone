@@ -1,66 +1,348 @@
 package com.project.back_end.services;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.project.back_end.DTO.Login;
+import com.project.back_end.models.Admin;
+import com.project.back_end.models.Appointment;
+import com.project.back_end.models.Doctor;
+import com.project.back_end.models.Patient;
+import com.project.back_end.repo.AdminRepository;
+import com.project.back_end.repo.DoctorRepository;
+import com.project.back_end.repo.PatientRepository;
+
+/**
+ * Service
+ * 
+ * Central service class that combines multiple functionalities: authentication,
+ * validation, and coordination across entities. This class handles authentication
+ * for admins and patients, validates appointments, filters doctors and patient
+ * appointments, and coordinates between different services.
+ */
+@org.springframework.stereotype.Service
 public class Service {
-// 1. **@Service Annotation**
-// The @Service annotation marks this class as a service component in Spring. This allows Spring to automatically detect it through component scanning
-// and manage its lifecycle, enabling it to be injected into controllers or other services using @Autowired or constructor injection.
 
-// 2. **Constructor Injection for Dependencies**
-// The constructor injects all required dependencies (TokenService, Repositories, and other Services). This approach promotes loose coupling, improves testability,
-// and ensures that all required dependencies are provided at object creation time.
+    private final TokenService tokenService;
+    private final AdminRepository adminRepository;
+    private final DoctorRepository doctorRepository;
+    private final PatientRepository patientRepository;
+    private final DoctorService doctorService;
+    private final PatientService patientService;
 
-// 3. **validateToken Method**
-// This method checks if the provided JWT token is valid for a specific user. It uses the TokenService to perform the validation.
-// If the token is invalid or expired, it returns a 401 Unauthorized response with an appropriate error message. This ensures security by preventing
-// unauthorized access to protected resources.
+    // Constructor injection for dependencies
+    public Service(
+            TokenService tokenService,
+            AdminRepository adminRepository,
+            DoctorRepository doctorRepository,
+            PatientRepository patientRepository,
+            DoctorService doctorService,
+            PatientService patientService) {
+        this.tokenService = tokenService;
+        this.adminRepository = adminRepository;
+        this.doctorRepository = doctorRepository;
+        this.patientRepository = patientRepository;
+        this.doctorService = doctorService;
+        this.patientService = patientService;
+    }
 
-// 4. **validateAdmin Method**
-// This method validates the login credentials for an admin user.
-// - It first searches the admin repository using the provided username.
-// - If an admin is found, it checks if the password matches.
-// - If the password is correct, it generates and returns a JWT token (using the admin’s username) with a 200 OK status.
-// - If the password is incorrect, it returns a 401 Unauthorized status with an error message.
-// - If no admin is found, it also returns a 401 Unauthorized.
-// - If any unexpected error occurs during the process, a 500 Internal Server Error response is returned.
-// This method ensures that only valid admin users can access secured parts of the system.
+    /**
+     * Checks the validity of a token for a given user.
+     * Returns an empty map if valid, or a map with error message if invalid.
+     * 
+     * @param token The token to be validated
+     * @param user The user role to whom the token belongs (admin, doctor, patient)
+     * @return Map with error message if invalid, empty map if valid
+     */
+    @Transactional
+    public Map<String, String> validateToken(String token, String user) {
+        Map<String, String> response = new HashMap<>();
 
-// 5. **filterDoctor Method**
-// This method provides filtering functionality for doctors based on name, specialty, and available time slots.
-// - It supports various combinations of the three filters.
-// - If none of the filters are provided, it returns all available doctors.
-// This flexible filtering mechanism allows the frontend or consumers of the API to search and narrow down doctors based on user criteria.
+        try {
+            // Use tokenService to check if the token is valid
+            boolean isValid = tokenService.validateToken(token, user);
 
-// 6. **validateAppointment Method**
-// This method validates if the requested appointment time for a doctor is available.
-// - It first checks if the doctor exists in the repository.
-// - Then, it retrieves the list of available time slots for the doctor on the specified date.
-// - It compares the requested appointment time with the start times of these slots.
-// - If a match is found, it returns 1 (valid appointment time).
-// - If no matching time slot is found, it returns 0 (invalid).
-// - If the doctor doesn’t exist, it returns -1.
-// This logic prevents overlapping or invalid appointment bookings.
+            if (!isValid) {
+                response.put("error", "Invalid or expired token");
+                return response;
+            }
 
-// 7. **validatePatient Method**
-// This method checks whether a patient with the same email or phone number already exists in the system.
-// - If a match is found, it returns false (indicating the patient is not valid for new registration).
-// - If no match is found, it returns true.
-// This helps enforce uniqueness constraints on patient records and prevent duplicate entries.
+            // Return empty map if token is valid
+            return response;
 
-// 8. **validatePatientLogin Method**
-// This method handles login validation for patient users.
-// - It looks up the patient by email.
-// - If found, it checks whether the provided password matches the stored one.
-// - On successful validation, it generates a JWT token and returns it with a 200 OK status.
-// - If the password is incorrect or the patient doesn't exist, it returns a 401 Unauthorized with a relevant error.
-// - If an exception occurs, it returns a 500 Internal Server Error.
-// This method ensures only legitimate patients can log in and access their data securely.
+        } catch (Exception e) {
+            response.put("error", "Error validating token: " + e.getMessage());
+            return response;
+        }
+    }
 
-// 9. **filterPatient Method**
-// This method filters a patient's appointment history based on condition and doctor name.
-// - It extracts the email from the JWT token to identify the patient.
-// - Depending on which filters (condition, doctor name) are provided, it delegates the filtering logic to PatientService.
-// - If no filters are provided, it retrieves all appointments for the patient.
-// This flexible method supports patient-specific querying and enhances user experience on the client side.
+    /**
+     * Validates the login credentials of an admin.
+     * 
+     * @param receivedAdmin The admin credentials (username and password) to be validated
+     * @return ResponseEntity with a generated token if authenticated, or error message if not
+     */
+    @Transactional
+    public ResponseEntity<Map<String, String>> validateAdmin(Admin receivedAdmin) {
+        Map<String, String> response = new HashMap<>();
 
+        try {
+            // Find admin by username
+            Admin admin = adminRepository.findByUsername(receivedAdmin.getUsername());
 
+            if (admin == null) {
+                response.put("message", "Invalid credentials");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+            }
+
+            // Check if password matches
+            if (!admin.getPassword().equals(receivedAdmin.getPassword())) {
+                response.put("message", "Invalid credentials");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+            }
+
+            // Generate token using admin's username (since admin uses username, not email)
+            String token = tokenService.generateToken(admin.getUsername());
+            response.put("token", token);
+            response.put("message", "Login successful");
+            return ResponseEntity.status(HttpStatus.OK).body(response);
+
+        } catch (Exception e) {
+            response.put("message", "Error during login: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+    }
+
+    /**
+     * Filters doctors based on name, specialty, and available time.
+     * If none of the filters are provided, returns all available doctors.
+     * 
+     * @param name The name of the doctor (can be null)
+     * @param specialty The specialty of the doctor (can be null)
+     * @param time The available time of the doctor, AM or PM (can be null)
+     * @return Map with list of doctors that match the filtering criteria
+     */
+    @Transactional
+    public Map<String, Object> filterDoctor(String name, String specialty, String time) {
+        Map<String, Object> response = new HashMap<>();
+
+        try {
+            // If all filters are provided
+            if (name != null && !name.trim().isEmpty() && 
+                specialty != null && !specialty.trim().isEmpty() && 
+                time != null && !time.trim().isEmpty()) {
+                return doctorService.filterDoctorsByNameSpecilityandTime(name, specialty, time);
+            }
+
+            // If name and specialty are provided
+            if (name != null && !name.trim().isEmpty() && 
+                specialty != null && !specialty.trim().isEmpty()) {
+                return doctorService.filterDoctorByNameAndSpecility(name, specialty);
+            }
+
+            // If name and time are provided
+            if (name != null && !name.trim().isEmpty() && 
+                time != null && !time.trim().isEmpty()) {
+                return doctorService.filterDoctorByNameAndTime(name, time);
+            }
+
+            // If specialty and time are provided
+            if (specialty != null && !specialty.trim().isEmpty() && 
+                time != null && !time.trim().isEmpty()) {
+                return doctorService.filterDoctorByTimeAndSpecility(specialty, time);
+            }
+
+            // If only name is provided
+            if (name != null && !name.trim().isEmpty()) {
+                return doctorService.findDoctorByName(name);
+            }
+
+            // If only specialty is provided
+            if (specialty != null && !specialty.trim().isEmpty()) {
+                return doctorService.filterDoctorBySpecility(specialty);
+            }
+
+            // If only time is provided
+            if (time != null && !time.trim().isEmpty()) {
+                return doctorService.filterDoctorsByTime(time);
+            }
+
+            // If no filters are provided, return all doctors
+            List<Doctor> doctors = doctorService.getDoctors();
+            response.put("doctors", doctors);
+            return response;
+
+        } catch (Exception e) {
+            response.put("error", "Error filtering doctors: " + e.getMessage());
+            return response;
+        }
+    }
+
+    /**
+     * Validates whether an appointment is available based on the doctor's schedule.
+     * 
+     * @param appointment The appointment to validate
+     * @return 1 if the appointment time is valid, 0 if unavailable, -1 if doctor doesn't exist
+     */
+    @Transactional
+    public int validateAppointment(Appointment appointment) {
+        try {
+            // Check if doctor exists
+            Optional<Doctor> doctorOpt = doctorRepository.findById(appointment.getDoctor().getId());
+            if (doctorOpt.isEmpty()) {
+                return -1; // Doctor doesn't exist
+            }
+
+            Doctor doctor = doctorOpt.get();
+
+            // Get the date of the appointment
+            LocalDate appointmentDate = appointment.getAppointmentTime().toLocalDate();
+
+            // Get available time slots for the doctor on the specified date
+            List<String> availableSlots = doctorService.getDoctorAvailability(doctor.getId(), appointmentDate);
+
+            // Get the appointment time in HH:mm format
+            LocalTime appointmentTime = appointment.getAppointmentTime().toLocalTime();
+            String requestedTimeSlot = String.format("%02d:%02d", appointmentTime.getHour(), appointmentTime.getMinute());
+
+            // Check if the requested time matches any available slot
+            for (String availableSlot : availableSlots) {
+                // Parse available slot (format: "HH:mm - HH:mm" or "HH:mm-HH:mm")
+                String[] parts = availableSlot.split("\\s*-\\s*");
+                if (parts.length > 0) {
+                    String slotStartTime = parts[0].trim();
+                    // Compare just the start time
+                    if (slotStartTime.startsWith(requestedTimeSlot) || 
+                        requestedTimeSlot.startsWith(slotStartTime.substring(0, Math.min(5, slotStartTime.length())))) {
+                        return 1; // Valid appointment time
+                    }
+                }
+            }
+
+            return 0; // Time slot not available
+
+        } catch (Exception e) {
+            return 0; // Error occurred, treat as unavailable
+        }
+    }
+
+    /**
+     * Checks whether a patient exists based on their email or phone number.
+     * 
+     * @param patient The patient to validate
+     * @return true if the patient does not exist (valid for registration), false if exists already
+     */
+    @Transactional
+    public boolean validatePatient(Patient patient) {
+        try {
+            // Check if patient exists by email or phone
+            Patient existingPatient = patientRepository.findByEmailOrPhone(patient.getEmail(), patient.getPhone());
+
+            // If patient is found, return false (patient already exists)
+            if (existingPatient != null) {
+                return false;
+            }
+
+            // If no patient found, return true (patient is valid for new registration)
+            return true;
+
+        } catch (Exception e) {
+            // On error, assume patient doesn't exist (allow registration)
+            return true;
+        }
+    }
+
+    /**
+     * Validates a patient's login credentials (email and password).
+     * 
+     * @param login The login credentials of the patient (email and password)
+     * @return ResponseEntity with a generated token if login is valid, or error message if not
+     */
+    @Transactional
+    public ResponseEntity<Map<String, String>> validatePatientLogin(Login login) {
+        Map<String, String> response = new HashMap<>();
+
+        try {
+            // Find patient by email (identifier)
+            Patient patient = patientRepository.findByEmail(login.getIdentifier());
+
+            if (patient == null) {
+                response.put("message", "Invalid credentials");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+            }
+
+            // Check if password matches
+            if (!patient.getPassword().equals(login.getPassword())) {
+                response.put("message", "Invalid credentials");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+            }
+
+            // Generate token using patient's email
+            String token = tokenService.generateToken(patient.getEmail());
+            response.put("token", token);
+            response.put("message", "Login successful");
+            return ResponseEntity.status(HttpStatus.OK).body(response);
+
+        } catch (Exception e) {
+            response.put("message", "Error during login: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+    }
+
+    /**
+     * Filters patient appointments based on certain criteria, such as condition and doctor name.
+     * 
+     * @param condition The medical condition to filter appointments by (past or future, can be null)
+     * @param name The doctor's name to filter appointments by (can be null)
+     * @param token The authentication token to identify the patient
+     * @return ResponseEntity with the filtered list of patient appointments based on the criteria
+     */
+    @Transactional
+    public ResponseEntity<Map<String, Object>> filterPatient(String condition, String name, String token) {
+        Map<String, Object> response = new HashMap<>();
+
+        try {
+            // Extract email from token to identify the patient
+            String email = tokenService.extractEmail(token);
+            Patient patient = patientRepository.findByEmail(email);
+
+            if (patient == null) {
+                response.put("error", "Patient not found");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+            }
+
+            Long patientId = patient.getId();
+
+            // If both condition and name are provided
+            if (condition != null && !condition.trim().isEmpty() && 
+                name != null && !name.trim().isEmpty()) {
+                return patientService.filterByDoctorAndCondition(condition, name, patientId);
+            }
+
+            // If only condition is provided
+            if (condition != null && !condition.trim().isEmpty()) {
+                return patientService.filterByCondition(condition, patientId);
+            }
+
+            // If only name is provided
+            if (name != null && !name.trim().isEmpty()) {
+                return patientService.filterByDoctor(name, patientId);
+            }
+
+            // If no filters are provided, return all appointments for the patient
+            return patientService.getPatientAppointment(patientId, token);
+
+        } catch (Exception e) {
+            response.put("error", "Error filtering appointments: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+    }
 }

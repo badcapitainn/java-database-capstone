@@ -1,21 +1,36 @@
 package com.project.back_end.repo;
 
-public interface PrescriptionRepository  {
-// 1. Extend MongoRepository:
-//    - The repository extends MongoRepository<Prescription, String>, which provides basic CRUD functionality for MongoDB.
-//    - This allows the repository to perform operations like save, delete, update, and find without needing to implement these methods manually.
-//    - MongoRepository is tailored for working with MongoDB, unlike JpaRepository which is used for relational databases.
+import java.util.List;
 
-// Example: public interface PrescriptionRepository extends MongoRepository<Prescription, String> {}
+import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.stereotype.Repository;
 
-// 2. Custom Query Method:
+import com.project.back_end.models.Prescription;
 
-//    - **findByAppointmentId**:
-//      - This method retrieves a list of prescriptions associated with a specific appointment.
-//      - Return type: List<Prescription>
-//      - Parameters: Long appointmentId
-//      - MongoRepository automatically derives the query from the method name, in this case, it will find prescriptions by the appointment ID.
+/**
+ * PrescriptionRepository
+ * 
+ * Repository interface for Prescription entities that extends MongoRepository to provide
+ * basic CRUD operations on MongoDB without implementing methods manually.
+ * 
+ * This repository supports:
+ * - Basic CRUD operations (save, delete, update, find) inherited from MongoRepository
+ * - MongoDB-specific query methods using Spring Data MongoDB naming conventions
+ * - Custom query methods for fetching prescriptions by appointment ID
+ * 
+ * Note: This repository uses MongoDB (not a relational database), so it extends
+ * MongoRepository instead of JpaRepository.
+ */
+@Repository
+public interface PrescriptionRepository extends MongoRepository<Prescription, String> {
 
-
+    /**
+     * Find prescriptions associated with a specific appointment.
+     * Uses Spring Data MongoDB naming convention (no @Query needed).
+     * MongoRepository automatically derives the query from the method name.
+     * 
+     * @param appointmentId The ID of the appointment to search for
+     * @return List of prescriptions associated with the specified appointment
+     */
+    List<Prescription> findByAppointmentId(Long appointmentId);
 }
-
