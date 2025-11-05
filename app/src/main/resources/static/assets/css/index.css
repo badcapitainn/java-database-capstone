@@ -1,53 +1,283 @@
-/* this is the style sheet file for index.htlm  */
+/* Global Reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
 
-/* 
-**Global Reset (`*`)**
+/* Base Styles */
+html, body {
+    height: 100%;
+    font-family: 'Roboto', sans-serif;
+}
 
-* Remove all default margin and padding.
-* Use `border-box` for sizing to include padding and border in element size.
+/* Container */
+.container {
+    width: 100%;
+    min-height: 100vh;
+}
 
-**Base (`html, body`)**
+/* Wrapper */
+.wrapper {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
 
-* Set height to 100% for full viewport layout.
-* Use the `'Roboto'` sans-serif font for modern, clean typography.
+/* Main Content Area */
+.main-content {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 40px;
+    text-align: center;
+    background-image: url('../images/defineRole/index.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+}
 
-**Layout Wrapper (`.wrapper`)**
+/* Heading */
+h2 {
+    font-size: 48px;
+    font-weight: bold;
+    color: #003e3e;
+    font-family: 'Alegreya', 'Roboto', sans-serif;
+    margin-bottom: 50px;
+}
 
-* Use a vertical flexbox layout.
-* Ensure the wrapper covers at least the full height of the screen (`min-height: 100vh`).
+/* Buttons */
+button {
+    background-color: #015c5d;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 10px 20px;
+    width: 200px;
+    margin-top: 10px;
+    cursor: pointer;
+    font-size: 16px;
+    font-family: 'Roboto', sans-serif;
+    transition: background-color 0.3s ease;
+}
 
-**Heading (`h2`)**
+button:hover {
+    background-color: #A62B1F;
+}
 
-* Set a large font size (`48px`) for prominence.
-* Add a bottom margin of `50px` for spacing.
-* Use a dark teal color (`#003e3e`).
-* Make the font bold and use a blended font stack (`'Alegreya', 'Roboto', sans-serif`) for elegant styling.
+/* Role Selection Buttons */
+.role-btn {
+    background-color: #015c5d;
+    margin: 10px;
+}
 
-**Main Section (`.main-content`)**
+.role-btn:hover {
+    background-color: #003e3e;
+}
 
-* Allow the section to grow to fill space with `flex-grow: 1`.
-* Add `40px` of internal padding.
-* Center content both horizontally and vertically using `justify-content` and `align-items`.
-* Display items in a column direction.
-* Center all text.
-* Apply a full-screen background image with:
+/* Dashboard Buttons */
+.dashboard-btn {
+    background-color: #015c5d;
+}
 
-  * `cover` size
-  * `center` positioning
-  * no repeat
-  * `fixed` attachment to keep image still during scroll
+.dashboard-btn:hover {
+    background-color: #003e3e;
+}
 
-**Buttons (`button`)**
+/* Modal Styles */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.5);
+}
 
-* Style with a teal green background (`#015c5d`) and white text.
-* Remove borders and round the corners (`12px`).
-* Use `10px 20px` padding and set width to `200px`.
-* Add a top margin of `10px` for spacing.
-* Enable pointer cursor and readable font size (`16px`).
-* On hover, change background color to bold red (`#A62B1F`).
+.modal-content {
+    background-color: #fefefe;
+    margin: 15% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 500px;
+    position: relative;
+}
 
-**Dashboard Buttons (`.dashboard-btn`)**
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    background: none;
+    border: none;
+    padding: 0;
+    width: auto;
+    margin: 0;
+    cursor: pointer;
+}
 
-* Use the same base green background (`#015c5d`) as the default button.
-* On hover, darken the background to deep teal (`#003e3e`) for visual feedback.
- */
+.close:hover,
+.close:focus {
+    color: #000;
+    text-decoration: none;
+}
+
+#modal-body {
+    margin-top: 20px;
+}
+
+/* Header Styles */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    background-color: #fff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.header .logo {
+    height: 50px;
+    width: auto;
+}
+
+.header nav {
+    display: flex;
+    gap: 20px;
+}
+
+.header nav a {
+    text-decoration: none;
+    color: #003e3e;
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+.header nav a:hover {
+    color: #015c5d;
+}
+
+/* Footer Styles */
+.footer {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding: 20px;
+    background-color: #003e3e;
+    color: white;
+    flex-wrap: wrap;
+}
+
+.footer section {
+    margin: 10px;
+}
+
+.footer a {
+    color: white;
+    text-decoration: none;
+    margin: 0 10px;
+}
+
+.footer a:hover {
+    text-decoration: underline;
+}
+
+/* Input Fields */
+.input-field {
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 16px;
+    font-family: 'Roboto', sans-serif;
+}
+
+.input-field:focus {
+    outline: none;
+    border-color: #015c5d;
+    box-shadow: 0 0 5px rgba(1, 92, 93, 0.3);
+}
+
+/* Select Dropdown */
+.select-dropdown {
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 16px;
+    font-family: 'Roboto', sans-serif;
+    background-color: white;
+    cursor: pointer;
+}
+
+.select-dropdown:focus {
+    outline: none;
+    border-color: #015c5d;
+    box-shadow: 0 0 5px rgba(1, 92, 93, 0.3);
+}
+
+/* Checkbox Group */
+.checkbox-group {
+    display: flex;
+    align-items: center;
+    margin: 10px 0;
+}
+
+.checkbox-group input[type="checkbox"] {
+    margin-right: 10px;
+    cursor: pointer;
+}
+
+.checkbox-group label {
+    cursor: pointer;
+    font-family: 'Roboto', sans-serif;
+}
+
+/* Interactive Styles */
+button:focus,
+input:focus,
+select:focus {
+    outline: 2px solid #015c5d;
+    outline-offset: 2px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    h2 {
+        font-size: 36px;
+    }
+
+    button {
+        width: 180px;
+        font-size: 14px;
+    }
+
+    .main-content {
+        padding: 20px;
+    }
+
+    .footer {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .header {
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .header nav {
+        flex-direction: column;
+        gap: 10px;
+    }
+}

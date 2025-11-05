@@ -1,14 +1,19 @@
 /* This is the style sheet for the patientDashboard.html */
-  .card-actions {
+
+/* Card Actions */
+.card-actions {
     background-color: #244557;
     padding: 10px;
     text-align: center;
-  }
+    transition: background-color 0.3s ease;
+}
 
-  .card-actions:hover{
+.card-actions:hover {
     background-color: #1c3745;
-  }
-  .ripple-overlay {
+}
+
+/* Ripple Overlay for Visual Feedback */
+.ripple-overlay {
     position: fixed;
     width: 20px;
     height: 20px;
@@ -17,64 +22,181 @@
     z-index: 9999;
     transform: translate(-50%, -50%) scale(0);
     transition: transform 1s ease-out, opacity 1s ease;
-  }
-  
-  .ripple-overlay.active {
-    transform: translate(-50%, -50%) scale(150);
-    opacity: 1;
-  }
-  
-  .modalApp {
-    position: fixed;
-  bottom: -100%;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 50%;
-  background: #fff;
-  padding: 20px;
-  z-index: 10000;
-  transition: bottom 1.5s ease-in;
-  box-shadow: 0 -5px 10px rgba(0, 0, 0, 0.3);
-  border-radius: 10px 10px 0 0;
-  text-align: center;
-  }
-  
-  .modalApp.active {
-    bottom: 0;
-  }
-  
-  .modalApp h2 {
-    margin-top: 20px;
-  }
-  
-  .modalApp input {
-    display: block;
-    margin: 10px auto;
-    padding: 10px;
-    width: 90%;
-    margin-bottom: 40px;
-  }
+    opacity: 0;
+    pointer-events: none;
+}
 
-  .modalApp select {
+.ripple-overlay.active {
+    transform: translate(-50%, -50%) scale(150);
+    opacity: 0.3;
+}
+
+/* Bottom Pop-Up Modal for Booking */
+.modalApp {
+    position: fixed;
+    bottom: -100%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 50%;
+    max-width: 600px;
+    background: #fff;
+    padding: 20px;
+    z-index: 10000;
+    transition: bottom 0.5s ease-in-out;
+    box-shadow: 0 -5px 10px rgba(0, 0, 0, 0.3);
+    border-radius: 10px 10px 0 0;
+    text-align: center;
+}
+
+.modalApp.active {
+    bottom: 0;
+}
+
+.modalApp h2 {
+    margin-top: 20px;
+    margin-bottom: 20px;
+    color: #244557;
+}
+
+/* Form Fields Inside Modal */
+.modalApp input,
+.modalApp select,
+.modalApp textarea {
     display: block;
     margin: 10px auto;
-    padding: 10px;
+    padding: 12px;
     width: 90%;
-    margin-bottom: 40px;
-  }
-  
-  .confirm-booking {
-    padding: 10px 20px;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    font-size: 16px;
+    font-family: Arial, sans-serif;
+    transition: border-color 0.3s ease;
+}
+
+.modalApp input:focus,
+.modalApp select:focus,
+.modalApp textarea:focus {
+    outline: none;
+    border-color: #244557;
+    box-shadow: 0 0 5px rgba(36, 69, 87, 0.3);
+}
+
+.modalApp label {
+    display: block;
+    margin-top: 15px;
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #333;
+    text-align: left;
+    width: 90%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* Booking Confirmation Button */
+.confirm-booking {
+    padding: 12px 30px;
     background: #1c3745;
     color: #fff;
     border: none;
+    border-radius: 8px;
     cursor: pointer;
-    
-  
-    
-  }
-  .confirm-booking:hover {
+    font-size: 16px;
+    font-weight: bold;
+    margin-top: 20px;
+    transition: filter 0.3s ease, transform 0.2s ease;
+}
+
+.confirm-booking:hover {
     filter: brightness(1.2);
     background-color: #1c3745;
-  }
-  
+}
+
+.confirm-booking:active {
+    transform: scale(0.98);
+}
+
+/* Filter Wrapper */
+.filter-wrapper {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    margin: 20px 0;
+    flex-wrap: wrap;
+}
+
+.filter-select {
+    padding: 10px 15px;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    font-size: 16px;
+    font-family: Arial, sans-serif;
+    background-color: white;
+    cursor: pointer;
+    min-width: 200px;
+    transition: border-color 0.3s ease;
+}
+
+.filter-select:focus {
+    outline: none;
+    border-color: #244557;
+    box-shadow: 0 0 5px rgba(36, 69, 87, 0.3);
+}
+
+/* Search Bar */
+.searchBar {
+    width: 100%;
+    max-width: 500px;
+    padding: 12px 20px;
+    margin: 20px 0;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    font-size: 16px;
+    font-family: Arial, sans-serif;
+    transition: border-color 0.3s ease;
+}
+
+.searchBar:focus {
+    outline: none;
+    border-color: #244557;
+    box-shadow: 0 0 5px rgba(36, 69, 87, 0.3);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .modalApp {
+        width: 90%;
+        padding: 15px;
+    }
+
+    .filter-wrapper {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .filter-select {
+        width: 100%;
+    }
+
+    .searchBar {
+        width: 100%;
+    }
+
+    .modalApp input,
+    .modalApp select,
+    .modalApp textarea {
+        width: 95%;
+    }
+}
+
+@media (max-width: 480px) {
+    .modalApp {
+        width: 100%;
+        border-radius: 0;
+    }
+
+    .confirm-booking {
+        width: 90%;
+        padding: 12px;
+    }
+}
